@@ -1,0 +1,242 @@
+﻿
+@{
+    ViewBag.Title = "Index";
+}
+<script src="https://maps.google.com/maps/api/js?key=AIzaSyAqhivdr5NsYtnNutWIhxV4dAgYkTGGwo8"></script>
+@ViewBag.Message
+
+
+<div class="form-group">
+    <label for="email">Email:</label>
+    <input type="email" class="form-control" id="emailId" placeholder="Enter Email" name="email">
+</div>
+<div class="container-fluid">
+    <div class="row">
+
+        <canvas id="canvas" style="width:200px;height:200px;border: 2px solid red"></canvas>
+
+        <div class="col-md-6">
+            <video id="video" autoplay style="width: 200px; height: 200px; border: 2px solid red"></video>
+
+        </div>
+    </div>
+</div>
+
+
+<div class="form-group">
+    <div class="col-md-offset-2 col-md-10">
+        <input type="button" value="Send Data" onclick="sendToController()" class="btn btn-danger" />
+
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-10">
+        <p id="text">Generating Map</p>
+        <div id="mapholder">
+
+        </div>
+    </div>
+</div>
+</div>
+</div>
+
+<script>
+    var video = document.getElementById('video');
+
+    if (navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(function (stream) {
+                video.srcObject = stream;
+            })
+            .catch(function (err0r) {
+                console.log("Something went wrong!");
+            });
+    }
+
+
+    let canvas = document.getElementById('canvas');
+    let ctx = canvas.getContext("2d");
+    let dataURL;
+    var file;
+
+    function CaptureImage(incidentName) {
+        canvas.height = canvas.width = 0;
+
+        //var imgwidth = video.offsetWidth;
+        //var imgheight = video.offsetHeight;
+        canvas.width = 300;
+        canvas.height = 300;
+        ctx.drawImage(
+            video, 0, 0, 300, 300
+        );
+
+        dataURL = canvas.toDataURL('image/jpeg');
+        dataURL.replace(/^data:image\/[a-z]+;base64,/, "");
+        dataURL = dataURL.replace(/^data:image\/[a-z]+;base64,/, "");
+
+
+        return dataURL;
+
+    }
+
+    /*
+    function showPosition(position) {
+        x.innerHTML = "Latitude: " + position.coords.latitude +
+            "<br>Longitude: " + position.coords.longitude;
+
+        longitute = position.coords.longitude;
+        latitude = position.coords.latitude;
+    }
+
+    function getLocation(candidate_id, candidate_name, examLogId, candToken) {
+        //$('#locationlarge').modal('show');
+        //$('.ajax-loader').css("visibility", "hidden");
+        //$('#TitleLoc').html(candidate_name);
+        //$('#textLoadLoc').html("Generating map based on coordinates");
+
+
+        $.ajax({
+            url: '/Share/getLocation',
+            //data: { examLogId: examLogId },
+            type: 'POST',
+            dataType: "JSON",
+            async: true,
+            success: function (data) {
+               //$('#TitleInciImg').html(candidate_name);
+               // $('#canid').html(candidate_id);
+
+                if (data == "" || data == null || data.latitude == "" || data.latitude == "") {
+
+                    $('#textLoadLoc').html("Coordinates not found");
+                    $("#textLoadLoc").removeClass("loading");
+                }
+                else {
+                    var lat = data.latitude; //19.19245927994663;
+                    var long = data.longitude; //72.8483806950186;
+                    //var city = position.coords.locality;
+                    var myLatlng = new google.maps.LatLng(lat, long);
+                    var myOptions = {
+                        center: myLatlng,
+                        zoom: 12,
+                        mapTypeId: google.maps.MapTypeId.ROADMAP
+                    };
+                    var map = new google.maps.Map(document.getElementById("map_canvas"), myOptions);
+                    var marker = new google.maps.Marker({
+                        position: myLatlng,
+                        title: "lat: " + lat + " long: " + long
+                    });
+
+                    marker.setMap(map);
+                    var infowindow = new google.maps.InfoWindow({ content: "<b>Student's Geo-Coordinates</b><br/> Latitude:" + lat + "<br /> Longitude:" + long + "" });
+                    infowindow.open(map, marker);
+                    //$('#textLoadLoc').html("Student's geolocation based on coordinates");
+                   // $("#textLoadLoc").removeClass("loading");
+                    //$('.ajax-loader').css("visibility", "hidden");
+                }
+            }
+        });
+    };
+    */
+    var x = document.getElementById("map_canvas");
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+
+        }
+        else {
+            x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+
+
+    }
+
+    function showPosition(position) {
+
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+
+        var latlon = new google.maps.LatLng(lat, lon)
+        var mapholder = document.getElementById('mapholder')
+        mapholder.style.height = '250px';
+        mapholder.style.width = '100%';
+
+        var myOptions = {
+            center: latlon, zoom: 14,
+            mapTypeId: google.maps.MapTypeId.ROADMAP,
+            mapTypeControl: false,
+            navigationControlOptions: { style: google.maps.NavigationControlStyle.SMALL }
+        };
+        var map = new google.maps.Map(document.getElementById("mapholder"), myOptions);
+        var marker = new google.maps.Marker({ position: latlon, map: map, title: "You are here!" });
+
+        console.log("lat :" + lat + "  " + "lon:" + lon);
+
+    }
+
+    function showError(error) {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                x.innerHTML = "User denied the request for Geolocation."
+                break;
+            case error.POSITION_UNAVAILABLE:
+                x.innerHTML = "Location information is unavailable."
+                break;
+            case error.TIMEOUT:
+                x.innerHTML = "The request to get user location timed out."
+                break;
+            case error.UNKNOWN_ERROR:
+                x.innerHTML = "An unknown error occurred."
+                break;
+        }
+    }
+</script>
+
+
+
+<script>
+
+    function sendToController()
+    {
+        alert("lat:"+lat+"  "+"lon:"+lon);
+        var emailID = document.getElementById('emailId').value;
+        //alert("after submit ::" + emailID);
+        console.log("email " + emailID);
+       var img = CaptureImage();
+        alert("Image : " + img);
+
+
+        var formData = new FormData();
+
+
+        formData.append('emailID', emailID);//base64Image
+       formData.append('lon', lon );
+      formData.append('lat', lat);
+        formData.append('img', img);
+      
+
+
+        $.ajax({
+             url: "@Url.Action("sendData", "Share")",
+            method: 'POST',
+            contentType: false,
+            processData: false,
+            data: formData,
+            success: function (res) {
+                console.log('successfully')
+            },
+            error: function () {
+                console.log('error')
+            }
+        })
+    }
+
+
+    window.onload = getLocation()
+    {
+        console.log('LOCATION');
+    }
+
+
+
+</script>
